@@ -9,6 +9,7 @@ import numpy as np
 import argparse
 import json
 import sys
+import matplotlib.pyplot as plt
 from pathlib import Path
 from datetime import datetime
 
@@ -379,6 +380,27 @@ class BeautyAnalyzer:
         
         return output
     
+    def generate_charts(self, result, output_path):
+        """Generate PNG charts for the beauty analysis."""
+        labels = ['Symmetry', 'Golden Ratio', 'Eyes', 'Nose', 'Lips', 'Eyebrows']
+        scores = [
+            result['symmetry'],
+            result['golden_ratio'],
+            result['eyes']['proportion_score'] if result['eyes'] else 0,
+            result['nose']['width_score'] if result['nose'] else 0,
+            result['lips']['ratio_score'] if result['lips'] else 0,
+            result['eyebrows']['symmetry'] if result['eyebrows'] else 0
+        ]
+        
+        plt.figure(figsize=(10, 6))
+        plt.bar(labels, scores, color='skyblue')
+        plt.title('Beauty Analysis Breakdown')
+        plt.ylabel('Score (0-100)')
+        plt.ylim(0, 100)
+        plt.savefig(output_path)
+        plt.close()
+        print(f"📊 Saved chart to: {output_path}")
+
     def analyze(self, image_path, draw_overlay=False, detailed=False, output_json=None):
         """Run full beauty analysis on an image."""
         print(f"📷 Analyzing: {image_path}")
@@ -475,6 +497,10 @@ class BeautyAnalyzer:
             with open(output_json, 'w') as f:
                 json.dump(result, f, indent=2)
             print(f"📄 Saved results to: {output_json}")
+            
+            # Save charts
+            chart_path = Path(output_json).with_suffix('.png')
+            self.generate_charts(result, chart_path)
         
         return result
 
