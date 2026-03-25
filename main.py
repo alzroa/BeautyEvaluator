@@ -382,8 +382,11 @@ class BeautyAnalyzer:
     
     def generate_charts(self, result, output_path):
         """Generate PNG charts for the beauty analysis."""
-        labels = ['Symmetry', 'Golden Ratio', 'Eyes', 'Nose', 'Lips', 'Eyebrows']
-        scores = [
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+        
+        # Facial Analysis
+        labels1 = ['Symmetry', 'Golden Ratio', 'Eyes', 'Nose', 'Lips', 'Eyebrows']
+        scores1 = [
             result['symmetry'],
             result['golden_ratio'],
             result['eyes']['proportion_score'] if result['eyes'] else 0,
@@ -391,15 +394,28 @@ class BeautyAnalyzer:
             result['lips']['ratio_score'] if result['lips'] else 0,
             result['eyebrows']['symmetry'] if result['eyebrows'] else 0
         ]
+        ax1.bar(labels1, scores1, color='skyblue')
+        ax1.set_title('Facial Analysis')
+        ax1.set_ylabel('Score (0-100)')
+        ax1.set_ylim(0, 100)
         
-        plt.figure(figsize=(10, 6))
-        plt.bar(labels, scores, color='skyblue')
-        plt.title('Beauty Analysis Breakdown')
-        plt.ylabel('Score (0-100)')
-        plt.ylim(0, 100)
+        # Body Analysis
+        if result['body_proportions']:
+            labels2 = ['Shoulder/Hip Ratio']
+            ratio = result['body_proportions']['shoulder_hip_ratio']
+            # Normalize to 0-100, ideal ~1.6
+            score2 = max(0, 100 - abs(ratio - 1.6) * 50)
+            scores2 = [score2]
+            ax2.bar(labels2, scores2, color='salmon')
+            ax2.set_title('Body Analysis')
+            ax2.set_ylabel('Score (Normalized)')
+            ax2.set_ylim(0, 100)
+        
+        plt.suptitle(f"Beauty Analysis: {result['timestamp']}")
+        plt.tight_layout()
         plt.savefig(output_path)
         plt.close()
-        print(f"📊 Saved chart to: {output_path}")
+        print(f"📊 Saved charts to: {output_path}")
 
     def analyze(self, image_path, draw_overlay=False, detailed=False, output_json=None):
         """Run full beauty analysis on an image."""
